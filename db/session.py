@@ -6,7 +6,7 @@ from util.logger import LoggerSessionManager
 from sqlalchemy.orm import Session
 from starlette.middleware.base import BaseHTTPMiddleware
 
-DATABASE_URL = "postgresql+psycopg2://db_user:db_password@localhost:5432/amazon"
+DATABASE_URL = "postgresql+psycopg2://db_user:db_password@127.0.0.1:5432/amazon"
 
 
 class DBSessionManager:
@@ -38,6 +38,7 @@ class DBSessionManager:
 
 
 class DBSessionMiddleware(BaseHTTPMiddleware):
+
     def __init__(self, app, db_session_manager: DBSessionManager):
         super().__init__(app)
         self.db_session_manager = db_session_manager
@@ -47,3 +48,7 @@ class DBSessionMiddleware(BaseHTTPMiddleware):
             request.state.db_session = db_session
             response: Response = await call_next(request)
             return response
+
+    @staticmethod
+    def get_db_session(request: Request) -> Session:
+        return request.state.db_session

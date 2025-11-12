@@ -1,10 +1,18 @@
-from fastapi import APIRouter, HTTPException, Request
+from pyclbr import Class
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm.session import Session
 
-from api.models import CreateProduct, ReadProduct
-from db.session import DBSessionManager
-from db.entities import Producto
+from api.models import (
+    CreateProduct,
+    BaseReadOrder,
+    ReadOrderWithUser,
+    ReadProduct,
+    BaseReadUser,
+    ReadUserWithOrders,
+)
+from db.session import DBSessionManager, DBSessionMiddleware
+from db.entities import Orden, Producto, Usuario
 from util.logger import LoggerSessionManager
 
 
@@ -12,7 +20,9 @@ class ProductoRouter:
     router = APIRouter(prefix="/productos", tags=["Productos"])
 
     def __init__(
-        self, db_session_manager: DBSessionManager, logger_session_manager: LoggerSessionManager
+        self,
+        db_session_manager: DBSessionManager,
+        logger_session_manager: LoggerSessionManager,
     ):
         self.db_session_manager = db_session_manager
         self.logger_session = logger_session_manager
@@ -76,3 +86,56 @@ class ProductoRouter:
             raise HTTPException(status_code=404, detail="Not found")
         db_session.delete(prod)
         return {"message": "Product deleted"}
+
+
+class UsuarioRouter:
+    router = APIRouter(prefix="/usuarios", tags=["Usuarios"])
+
+    def __init__(
+        self,
+        db_session_manager: DBSessionManager,
+        logger_session_manager: LoggerSessionManager,
+    ):
+        self.db_session_manager = db_session_manager
+        self.logger_session = logger_session_manager
+        self.logger = logger_session_manager.get_logger(__name__)
+
+        @self.router.get("/{user_id}", response_model=ReadUserWithOrders)
+        def get_user_by_id(
+            user_id: int,
+            db_session: Session = Depends(DBSessionMiddleware.get_db_session),
+        ):
+            # user = (
+            #     db_session.query(Usuario, Orden)
+            #     .join(Orden, Orden.usuario_id == Usuario.id, isouter=True)
+            #     .where(Usuario.id == user_id)
+            #     .all()
+            # )
+            user: Usuario = db_session.query(Usuario).get(user_id)
+            if user is None:
+                raise HTTPException(status_code=404, detail="Not found")
+
+            return user
+
+
+class OrdenesRouter:
+    router = APIRouter(prefix="/ordenes", tags=["Ordenes"])
+
+    def __init__(
+        self,
+        db_session_manager: DBSessionManager,
+        logger_session_manager: LoggerSessionManager,
+    ):
+        self.db_session_manager = db_session_manager
+        self.logger_session = logger_session_manager
+        self.logger = logger_session_manager.get_logger(__name__)
+
+        @self.router.get("/{orden_id}", response_model=ReadOrderWithUser)
+        def get_orden_by_id(
+            orden_id: int,
+            db_session: Session = Depends(DBSessionMiddleware.get_db_session),
+        ):
+            orden: Orden = db_session.query(Orden).get(orden_id)
+            if orden is None:
+                raise HTTPException(status_code=404, detail="Not found")
+            return orden
