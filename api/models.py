@@ -1,3 +1,4 @@
+from datetime import datetime
 from pydantic import BaseModel, condecimal
 
 
@@ -16,3 +17,10 @@ class ReadProduct(CreateProduct):
     class Config:
         orm_mode = True
         title = "ReadProduct"
+
+class ReadPago(BaseModel):
+    id:int
+    fecha_pago: datetime
+    fecha_validacion: datetime | None
+    monto: float
+    validado: bool

@@ -1,11 +1,13 @@
+from tkinter import NO
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm.session import Session
 
-from api.models import CreateProduct, ReadProduct
+from api.models import CreateProduct, ReadPago, ReadProduct
 from db.session import DBSessionManager
-from db.entities import Producto
+from db.entities import Pago, Producto
 from util.logger import LoggerSessionManager
+
 
 
 class ProductoRouter:
@@ -14,6 +16,7 @@ class ProductoRouter:
     def __init__(
         self, db_session_manager: DBSessionManager, logger_session_manager: LoggerSessionManager
     ):
+
         self.db_session_manager = db_session_manager
         self.logger_session = logger_session_manager
         self.logger = logger_session_manager.get_logger(__name__)
@@ -76,3 +79,20 @@ class ProductoRouter:
             raise HTTPException(status_code=404, detail="Not found")
         db_session.delete(prod)
         return {"message": "Product deleted"}
+
+class PagosRouter:
+    router = APIRouter(prefix="/pagos", tags=["Pagos"])
+
+    def __init__(self, db_session_manager: DBSessionManager, logger_session_manager: LoggerSessionManager):
+        self.db_session_manager = db_session_manager
+        self.logger_session = logger_session_manager
+        self.logger = logger_session_manager.get_logger(__name__)
+
+        @self.router.get(path="/{pago_id}", response_model=ReadPago)
+        def get_pago_by_id(pago_id: int, request: Request):
+            db_session: Session = request.state.db_session
+            pago = db_session.query(Pago).where(Pago.id==pago_id).all()
+            if len(pago)==0:
+                raise HTTPException(status_code=404, detail="Not found")
+            return pago[0]
+

@@ -1,5 +1,6 @@
 from datetime import datetime
 from sqlalchemy import (
+    BOOLEAN,
     BigInteger,
     Integer,
     String,
@@ -8,6 +9,7 @@ from sqlalchemy import (
     Boolean,
     DateTime,
     ForeignKey,
+    DECIMAL
 )
 from sqlalchemy.orm import relationship, declarative_base, Mapped, mapped_column
 
@@ -55,3 +57,13 @@ class ProductoCategoria(Base):
         "Categoria", back_populates="productos"
     )
     producto: Mapped["Producto"] = relationship("Producto", back_populates="categorias")
+
+class Pago(Base):
+    __tablename__ = "pago"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    fecha_pago: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    fecha_validacion: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
+    monto: Mapped[float] = mapped_column(DECIMAL(12,1),nullable=False)
+    validado: Mapped[bool] = mapped_column(BOOLEAN, nullable=False)
+
