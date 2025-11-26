@@ -13,6 +13,16 @@ from api.models import (
 )
 from db.session import DBSessionManager, DBSessionMiddleware
 from db.entities import Orden, Producto, Usuario
+
+from tkinter import NO
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import JSONResponse
+from sqlalchemy.orm.session import Session
+
+from api.models import CreateProduct, ReadPago, ReadProduct
+from db.session import DBSessionManager
+from db.entities import Pago, Producto
+
 from util.logger import LoggerSessionManager
 
 
@@ -96,10 +106,6 @@ class UsuarioRouter:
         db_session_manager: DBSessionManager,
         logger_session_manager: LoggerSessionManager,
     ):
-        self.db_session_manager = db_session_manager
-        self.logger_session = logger_session_manager
-        self.logger = logger_session_manager.get_logger(__name__)
-
         @self.router.get("/{user_id}", response_model=ReadUserWithOrders)
         def get_user_by_id(
             user_id: int,
@@ -116,6 +122,27 @@ class UsuarioRouter:
                 raise HTTPException(status_code=404, detail="Not found")
 
             return user
+
+
+class PagosRouter:
+    router = APIRouter(prefix="/pagos", tags=["Pagos"])
+
+    def __init__(
+        self,
+        db_session_manager: DBSessionManager,
+        logger_session_manager: LoggerSessionManager,
+    ):
+        self.db_session_manager = db_session_manager
+        self.logger_session = logger_session_manager
+        self.logger = logger_session_manager.get_logger(__name__)
+
+        @self.router.get(path="/{pago_id}", response_model=ReadPago)
+        def get_pago_by_id(pago_id: int, request: Request):
+            db_session: Session = request.state.db_session
+            pago = db_session.query(Pago).where(Pago.id == pago_id).all()
+            if len(pago) == 0:
+                raise HTTPException(status_code=404, detail="Not found")
+            return pago[0]
 
 
 class OrdenesRouter:

@@ -12,14 +12,12 @@ class CreateProduct(BaseModel):
         from_attributes = True
         title = "CreateProduct"
 
-
 class ReadProduct(CreateProduct):
     id: int
 
     class Config:
         orm_mode = True
         title = "ReadProduct"
-
 
 class BaseReadUser(BaseModel):
     id: int
@@ -59,3 +57,11 @@ class ReadUserWithOrders(BaseReadUser):
         from_attributes = True
         title = "ReadUserWithOrders"
         allow_population_by_field_name = True
+
+class ReadPago(BaseModel):
+    id:int
+    fecha_pago: datetime
+    fecha_validacion: datetime | None
+    monto: float
+    validado: bool
+
