@@ -1,7 +1,9 @@
+from typing import Any, Dict, Tuple
 from fastapi import Request, Response
-from sqlalchemy import create_engine
+from sqlalchemy import ClauseElement, Compiled, create_engine
 from sqlalchemy.orm import sessionmaker
 from contextlib import contextmanager
+from db.entities import Base
 from util.logger import LoggerSessionManager
 from sqlalchemy.orm import Session
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -17,6 +19,18 @@ class DBSessionManager:
         db_url: str = DATABASE_URL,
         echo: bool = False,
     ):
+
+        # Uncomment to see the DB schema generated from entities
+        # logger = logger_session_manager.get_logger(__name__)
+        # def executor(
+        #     sql: ClauseElement | Compiled,
+        #     *multiparams: Tuple[Any, ...],
+        #     **params: Dict[str, Any],
+        # ):
+        #     logger.info(sql.compile(dialect=self.engine.dialect))
+        # self.engine = create_engine(db_url, strategy="mock", executor=executor)
+        # Base.metadata.create_all(bind=self.engine)
+
         self.engine = create_engine(db_url, echo=echo, future=True)
         self.logger_session_manager = logger_session_manager
         self.logger = self.logger_session_manager.get_logger()

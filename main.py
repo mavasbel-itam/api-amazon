@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from db.entities import Base
 from db.session import DBSessionManager, DBSessionMiddleware
 from api.routers import OrdenesRouter, ProductoRouter, UsuarioRouter, PagosRouter
 from util.logger import LoggerSessionManager
@@ -7,7 +6,6 @@ from util.logger import LoggerSessionManager
 logger_session_manager = LoggerSessionManager()
 
 db_session_manager = DBSessionManager(logger_session_manager)
-# Base.metadata.create_all(bind=db_session_manager.engine)
 
 producto_router = ProductoRouter(db_session_manager, logger_session_manager)
 usuarios_router = UsuarioRouter(db_session_manager, logger_session_manager)

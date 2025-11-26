@@ -1,101 +1,156 @@
-from datetime import datetime
-from enum import auto
 from sqlalchemy import (
-    TIMESTAMP,
-    BOOLEAN,
-    BigInteger,
-    Integer,
+    Column,
     String,
     Text,
-    Numeric,
     Boolean,
-    DateTime,
+    Integer,
+    BigInteger,
+    Numeric,
     ForeignKey,
-    DECIMAL
+    DateTime,
 )
-from sqlalchemy.orm import relationship, declarative_base, Mapped, mapped_column
+from sqlalchemy.orm import relationship, declarative_base
 
 Base = declarative_base()
 
 
+# ------------------------------
+# Categoria
+# ------------------------------
 class Categoria(Base):
     __tablename__ = "categoria"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    nombre: Mapped[str] = mapped_column(String(300), unique=True, nullable=False)
+    id = Column(BigInteger, primary_key=True)
+    nombre = Column(String(300), nullable=False, unique=True)
 
-    productos: Mapped[list["ProductoCategoria"]] = relationship(
+    productos = relationship(
         "ProductoCategoria", back_populates="categoria", cascade="all, delete-orphan"
     )
 
 
+# ------------------------------
+# Producto
+# ------------------------------
 class Producto(Base):
     __tablename__ = "producto"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    nombre: Mapped[str] = mapped_column(String(300), nullable=False)
-    descripcion: Mapped[str] = mapped_column(Text, nullable=False)
-    precio: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
-    imagen: Mapped[str] = mapped_column(String(100), nullable=False)
+    id = Column(BigInteger, primary_key=True)
+    nombre = Column(String(300), nullable=False)
+    descripcion = Column(Text, nullable=False)
+    precio = Column(Numeric(12, 2), nullable=False)
+    imagen = Column(String(100), nullable=False)
 
-    categorias: Mapped[list["ProductoCategoria"]] = relationship(
+    categorias = relationship(
         "ProductoCategoria", back_populates="producto", cascade="all, delete-orphan"
     )
 
+    ordenes = relationship(
+        "ProductoOrden", back_populates="producto", cascade="all, delete-orphan"
+    )
 
+
+# ------------------------------
+# Usuario
+# ------------------------------
+class Usuario(Base):
+    __tablename__ = "usuario"
+
+    id = Column(BigInteger, primary_key=True)
+    nombre = Column(String(300), nullable=False)
+    apellido = Column(String(300), nullable=False)
+    telefono = Column(String(15), nullable=False, unique=True)
+    correo = Column(String(254), nullable=False, unique=True)
+    contrasena = Column(String(100), nullable=False)
+    es_prime = Column(Boolean, nullable=False)
+
+    ordenes = relationship("Orden", back_populates="usuario")
+
+
+# ------------------------------
+# Orden
+# ------------------------------
+class Orden(Base):
+    __tablename__ = "orden"
+
+    id = Column(BigInteger, primary_key=True)
+    fecha_creacion = Column(DateTime(timezone=True), nullable=False)
+    fecha_entrega = Column(DateTime(timezone=True))
+    direccion_entrega = Column(Text, nullable=False)
+
+    usuario_id = Column(
+        BigInteger,
+        ForeignKey("usuario.id", ondelete="RESTRICT", onupdate="RESTRICT"),
+        nullable=False,
+    )
+
+    usuario = relationship("Usuario", back_populates="ordenes")
+    pagos = relationship("Pago", back_populates="orden")
+    productos = relationship("ProductoOrden", back_populates="orden")
+
+
+# ------------------------------
+# Pago
+# ------------------------------
+class Pago(Base):
+    __tablename__ = "pago"
+
+    id = Column(BigInteger, primary_key=True)
+    fecha_pago = Column(DateTime(timezone=True), nullable=False)
+    fecha_validacion = Column(DateTime(timezone=True))
+    monto = Column(Numeric(12, 2), nullable=False)
+    validado = Column(Boolean, nullable=False)
+
+    orden_id = Column(
+        BigInteger,
+        ForeignKey("orden.id", ondelete="RESTRICT", onupdate="RESTRICT"),
+        nullable=False,
+    )
+
+    orden = relationship("Orden", back_populates="pagos")
+
+
+# ------------------------------
+# ProductoCategoria (Association Object)
+# ------------------------------
 class ProductoCategoria(Base):
     __tablename__ = "producto_categoria"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    categoria_id: Mapped[int] = mapped_column(
+    id = Column(BigInteger, primary_key=True)
+
+    categoria_id = Column(
+        BigInteger,
         ForeignKey("categoria.id", ondelete="CASCADE", onupdate="RESTRICT"),
         nullable=False,
     )
-    producto_id: Mapped[int] = mapped_column(
+    producto_id = Column(
+        BigInteger,
         ForeignKey("producto.id", ondelete="CASCADE", onupdate="RESTRICT"),
         nullable=False,
     )
 
-    categoria: Mapped["Categoria"] = relationship(
-        "Categoria", back_populates="productos"
+    categoria = relationship("Categoria", back_populates="productos")
+    producto = relationship("Producto", back_populates="categorias")
+
+
+# ------------------------------
+# ProductoOrden (Association Object)
+# ------------------------------
+class ProductoOrden(Base):
+    __tablename__ = "producto_orden"
+
+    id = Column(BigInteger, primary_key=True)
+    cantidad = Column(Integer, nullable=False)
+
+    orden_id = Column(
+        BigInteger,
+        ForeignKey("orden.id", ondelete="RESTRICT", onupdate="RESTRICT"),
+        nullable=False,
     )
-    producto: Mapped["Producto"] = relationship("Producto", back_populates="categorias")
-
-class Usuario(Base):
-    __tablename__ = "usuario"
-
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    nombre: Mapped[str] = mapped_column(String(300), nullable=False)
-    apellido: Mapped[str] = mapped_column(String(300), nullable=False)
-    telefono: Mapped[str] = mapped_column(String(15), nullable=False)
-    correo: Mapped[str] = mapped_column(String(254), nullable=False)
-    contrasena: Mapped[str] = mapped_column(String(100), nullable=False)
-    es_prime: Mapped[bool] = mapped_column(Boolean, nullable=False)
-
-    ordenes: Mapped[list["Orden"]] = relationship("Orden", back_populates="usuario")
-
-
-class Orden(Base):
-    __tablename__ = "orden"
-
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    fecha_creacion: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
+    producto_id = Column(
+        BigInteger,
+        ForeignKey("producto.id", ondelete="RESTRICT", onupdate="RESTRICT"),
+        nullable=False,
     )
-    fecha_entrega: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    direccion_entrega: Mapped[str] = mapped_column(Text, nullable=False)
-    usuario_id: Mapped[int] = mapped_column(ForeignKey("usuario.id"), nullable=False)
 
-    usuario: Mapped[Usuario] = relationship("Usuario", back_populates="ordenes")
-
-class Pago(Base):
-    __tablename__ = "pago"
-
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    fecha_pago: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    fecha_validacion: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
-    monto: Mapped[float] = mapped_column(DECIMAL(12,1),nullable=False)
-    validado: Mapped[bool] = mapped_column(BOOLEAN, nullable=False)
-
+    orden = relationship("Orden", back_populates="productos")
+    producto = relationship("Producto", back_populates="ordenes")
