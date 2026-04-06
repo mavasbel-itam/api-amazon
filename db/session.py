@@ -1,3 +1,4 @@
+import os
 from typing import Any, Dict, Tuple
 from fastapi import Request, Response
 from sqlalchemy import ClauseElement, Compiled, create_engine
@@ -8,7 +9,13 @@ from util.logger import LoggerSessionManager
 from sqlalchemy.orm import Session
 from starlette.middleware.base import BaseHTTPMiddleware
 
-DATABASE_URL = "postgresql+psycopg2://db_user:db_password@127.0.0.1:5432/amazon"
+# Read connection details from environment variables, falling back to defaults
+DB_USER = os.environ.get("DATABASE_USER", "db_username")
+DB_PASSWORD = os.environ.get("DATABASE_PASSWORD", "db_password")
+DB_HOST = os.environ.get("DATABASE_HOST", "127.0.0.1")
+DB_PORT = os.environ.get("DATABASE_PORT", "5432")
+DB_NAME = os.environ.get("DATABASE_NAME", "db_name")
+DATABASE_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 
 class DBSessionManager:

@@ -1,3 +1,7 @@
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from fastapi import FastAPI
 from db.session import DBSessionManager, DBSessionMiddleware
 from api.routers import OrdenesRouter, ProductoRouter, UsuarioRouter, PagosRouter
