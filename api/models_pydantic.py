@@ -16,7 +16,7 @@ class ReadProduct(CreateProduct):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
         title = "ReadProduct"
 
 class BaseReadUser(BaseModel):
@@ -56,7 +56,7 @@ class ReadUserWithOrders(BaseReadUser):
     class Config:
         from_attributes = True
         title = "ReadUserWithOrders"
-        allow_population_by_field_name = True
+        validate_by_name = True
 
 class ReadPago(BaseModel):
     id:int

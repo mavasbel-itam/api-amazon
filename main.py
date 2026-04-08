@@ -4,7 +4,7 @@ load_dotenv()
 
 from fastapi import FastAPI
 from db.session import DBSessionManager, DBSessionMiddleware
-from api.routers import OrdenesRouter, ProductoRouter, UsuarioRouter, PagosRouter
+from api.routers_pydantic import OrdenesRouter, ProductoRouter, UsuarioRouter, PagosRouter
 from util.logger import LoggerSessionManager
 
 logger_session_manager = LoggerSessionManager()

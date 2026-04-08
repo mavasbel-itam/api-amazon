@@ -4,7 +4,7 @@ from fastapi import Request, Response
 from sqlalchemy import ClauseElement, Compiled, create_engine
 from sqlalchemy.orm import sessionmaker
 from contextlib import contextmanager
-from db.entities import Base
+from db.entities_sqlalchemy import Base
 from util.logger import LoggerSessionManager
 from sqlalchemy.orm import Session
 from starlette.middleware.base import BaseHTTPMiddleware
